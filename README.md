@@ -14,3 +14,5 @@ Any posts made by the thread author are included in the ebook, even if they are 
 ## Usage
 
 `scraper.py thread_url output_filename`
+
+The output filename should end in .epub for an ebook.
