@@ -62,7 +62,7 @@ def main() -> None:
         if i == 0:
             story_author_name, thread_title = extract_metadata(soup)
         process_page(soup, story_author_name)
-        print("finished page")
+        print("Finished page")
         if i == len(page_urls) - 1:
             break
         time.sleep(5)
