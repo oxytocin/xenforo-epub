@@ -27,22 +27,6 @@ def extract_metadata(soup: BeautifulSoup) -> Tuple[str, str]:
     thread_title = soup.select(".p-title-value")[0].text
     return story_author_name, thread_title
 
-def get_page_urls(base_url) -> List[str]:
-    print("Enumerating pages...")
-    current_page = 2
-    page_urls = [base_url]  # First page is always just base url
-    while True:
-        page_url = f"{base_url}page-{current_page}"
-        r = requests.head(page_url, allow_redirects=False)
-        if r.status_code != 200:
-            break
-        print(f"Confirmed existence of page {current_page}")
-        page_urls.append(page_url)
-        current_page += 1
-        time.sleep(5)
-    print("Done enumerating pages")
-    return page_urls
-
 def main() -> None:
     if len(sys.argv) < 3:
         print(f"usage: {sys.argv[0]} story_url output_filename")
@@ -53,19 +37,22 @@ def main() -> None:
 
     BASE_URL = sys.argv[1]
     OUT_FILENAME = sys.argv[2]
-    page_urls = get_page_urls(BASE_URL)
     thread_title = story_author_name = ""
-    for i, page_url in enumerate(page_urls):
-        r = requests.get(page_url)
+    pageno = 1
+    while True:
+        url = BASE_URL if pageno == 1 else f"{BASE_URL}page-{pageno}"
+        r = requests.get(url, allow_redirects=False)
+        if r.status_code != 200:
+            break
         html = r.text
         soup = BeautifulSoup(html, "html.parser")
-        if i == 0:
+        if pageno == 1:
             story_author_name, thread_title = extract_metadata(soup)
         process_page(soup, story_author_name)
-        print("Finished page")
-        if i == len(page_urls) - 1:
-            break
+        print(f"Finished page {pageno}")
         time.sleep(5)
+        pageno += 1
+
     os.system(f'pandoc --metadata title="{thread_title}" --metadata creator="{story_author_name}" {TEMP_FILENAME} -o {OUT_FILENAME}')
     os.system(f"rm {TEMP_FILENAME}")
 
