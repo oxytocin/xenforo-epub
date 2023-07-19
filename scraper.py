@@ -67,5 +67,6 @@ def main() -> None:
             break
         time.sleep(5)
     os.system(f'pandoc --metadata title="{thread_title}" --metadata creator="{story_author_name}" {TEMP_FILENAME} -o {OUT_FILENAME}')
+    os.system(f"rm {TEMP_FILENAME}")
 
 main()
