@@ -16,6 +16,9 @@ def process_page(soup: BeautifulSoup, story_author_name: str) -> None:
         if post_author_name != story_author_name:
             return
         chapter_content = post.select(".bbWrapper")[0].decode_contents()
+        chapter_content = f"<p>{chapter_content}</p>"
+        chapter_content = chapter_content.replace("\n", "</p><p>")
+        chapter_content = chapter_content.replace("<br/>", "")
         with open(TEMP_FILENAME, "a") as f:
             f.write(chapter_content + "<br/><br/>END OF POST<br/><br/>")
 
