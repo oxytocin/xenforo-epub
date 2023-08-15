@@ -43,7 +43,6 @@ def process_page(soup: BeautifulSoup, story_author_name: str) -> None:
 
         chapter_content = "\n".join(paragraphed_lines)
         chapter_content = chapter_content.replace("<br/>", "")
-        chapter_content = chapter_content.replace("\n", "")
         with open(TEMP_FILENAME, "a") as f:
             f.write(chapter_content + "<br/><br/>END OF POST<br/><br/>")
 
@@ -82,6 +81,6 @@ def main() -> None:
         pageno += 1
 
     os.system(f'pandoc --metadata title="{thread_title}" --metadata creator="{story_author_name}" {TEMP_FILENAME} -o {OUT_FILENAME}')
-    # os.system(f"rm {TEMP_FILENAME}")
+    os.system(f"rm {TEMP_FILENAME}")
 
 main()
