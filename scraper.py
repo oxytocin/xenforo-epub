@@ -15,10 +15,35 @@ def process_page(soup: BeautifulSoup, story_author_name: str) -> None:
         post_author_name = post.select(".username")[0].text
         if post_author_name != story_author_name:
             return
-        chapter_content = post.select(".bbWrapper")[0].decode_contents()
-        chapter_content = f"<p>{chapter_content}</p>"
-        chapter_content = chapter_content.replace("\n", "</p><p>")
+        chapter_content: str = post.select(".bbWrapper")[0].decode_contents()
+        lines = chapter_content.split("\n")
+
+        # Pre-empt the issue of putting p tags inside i tags when multiple
+        # paragraphs are in one i tag.
+        #
+        # TODO: Technically you'd have to do this for bold and underlining too
+        # but I don't know if that's worth the trouble
+        inside_i = False
+        for i, line in enumerate(lines):
+            if "<i>" in line and not "</i>" in line:
+                inside_i = True
+                lines[i] = ""
+                continue
+            if inside_i is False:
+                continue
+            if "</i>" in line and not "<i>" in line:
+                inside_i = False
+                lines[i] = ""
+                continue
+            if line == "" or line.startswith("<"):
+                continue
+            lines[i] = f"<p><i>{line}</i></p>"
+
+        paragraphed_lines = [f"<p>{line}</p>" if not line.startswith("<") else line for line in lines]
+
+        chapter_content = "\n".join(paragraphed_lines)
         chapter_content = chapter_content.replace("<br/>", "")
+        chapter_content = chapter_content.replace("\n", "")
         with open(TEMP_FILENAME, "a") as f:
             f.write(chapter_content + "<br/><br/>END OF POST<br/><br/>")
 
@@ -57,6 +82,6 @@ def main() -> None:
         pageno += 1
 
     os.system(f'pandoc --metadata title="{thread_title}" --metadata creator="{story_author_name}" {TEMP_FILENAME} -o {OUT_FILENAME}')
-    os.system(f"rm {TEMP_FILENAME}")
+    # os.system(f"rm {TEMP_FILENAME}")
 
 main()
